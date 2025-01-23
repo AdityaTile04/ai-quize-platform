@@ -1,4 +1,5 @@
-"use client";
+'use client'
+
 
 import React from "react";
 import { Button } from "./ui/button";
@@ -12,7 +13,7 @@ const Login = ({ text }: Props) => {
   return (
     <Button
       onClick={() => {
-        signIn("google").catch(console.error);
+        signIn("google").catch(console.error)
       }}
     >
       {text}
