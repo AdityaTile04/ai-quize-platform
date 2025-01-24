@@ -8,8 +8,8 @@ datasource db {
   relationMode = "prisma"
 }
 
-model account {
-  id                String  @id
+model Account {
+  id                String  @id @default(cuid())
   userId            String
   type              String
   provider          String
@@ -21,23 +21,69 @@ model account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId], map: "Account_provider_providerAccountId_key")
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
-model session {
-  id           String   @id
-  sessionToken String   @unique(map: "Session_sessionToken_key")
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
   userId       String
   expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId], map: "userId")
+  @@index([userId])
 }
 
-model user {
-  id            String    @id
-  email         String?   @unique(map: "User_email_key")
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
-  name          String?
+  games         Game[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+enum GameType {
+  mcq
+  open_ended
+}
+
+model Game {
+  id          String     @id @default(cuid())
+  userId      String
+  timeStarted DateTime
+  topic       String
+  timeEnded   DateTime?
+  gameType    GameType
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions   Question[]
+
+  @@index([userId])
+}
+
+model topic_count {
+  id    String @id @default(cuid())
+  topic String @unique
+  count Int
+}
+
+model Question {
+  id                String   @id @default(cuid())
+  question          String
+  answer            String
+  gameId            String
+  options           Json? // for mcq questions
+  percentageCorrect Float? // for open_ended questions
+  isCorrect         Boolean? // for mcq questions
+  questionType      GameType
+  userAnswer        String?
+
+  game Game @relation(fields: [gameId], references: [id])
+
+  @@index([gameId])
 }
